@@ -24,6 +24,10 @@ struct DeviceFilter: Identifiable, Hashable, Codable {
     let id = UUID()
     var label: String
     static var all: [DeviceFilter] {
-        [.init(label: "Devices"), .init(label: "manual")]
+        [
+            .init(label: "Devices"),
+            .init(label: "manual"),
+            .init(label: "ME5")
+        ]
     }
 }
