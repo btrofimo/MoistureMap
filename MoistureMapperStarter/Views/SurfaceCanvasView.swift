@@ -1,9 +1,11 @@
 import SwiftUI
 import UIKit
+import CoreBluetooth
 
 struct SurfaceCanvasView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var store: MoistureStore
+    @StateObject private var bluetooth = BluetoothManager.shared
     @State private var selectedXY: (x: Int, y: Int)?
     @State private var scope: ReadingScope = .all
     @State private var sort: ReadingSort = .newest
@@ -32,6 +34,10 @@ struct SurfaceCanvasView: View {
                              device: $device)
             ReadingFilterBar(scope: $scope, sort: $sort, device: $device)
         }
+        .onReceive(bluetooth.$lastReading.compactMap { $0 }) { value in
+            guard let xy = selectedXY else { return }
+            store.update(row: xy.y, col: xy.x, with: value, deviceID: "ME5")
+        }
         .navigationTitle(surface.name)
         .toolbar {
             Button("Done") {
@@ -53,7 +59,19 @@ struct SurfaceCanvasView: View {
     }
 
     private func exportPDF() {
-        // PDF exporter stub
+        let pdfView = UIHostingController(rootView:
+            MoistureGridView(store: store,
+                             background: UIImage(data: surface.imageData) ?? UIImage(),
+                             selectedXY: .constant(nil),
+                             scope: $scope,
+                             device: $device)
+                .padding()
+        ).view!
+        pdfView.bounds = CGRect(x: 0, y: 0, width: 612, height: 792)
+        let data = PDFExporter().render(view: pdfView)
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("map.pdf")
+        try? data.write(to: url)
+        share(url: url)
     }
 
     private func share(url: URL) {

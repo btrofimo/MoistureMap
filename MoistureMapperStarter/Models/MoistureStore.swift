@@ -32,10 +32,10 @@ final class MoistureStore: ObservableObject {
         }
     }
 
-    func update(row: Int, col: Int, with newVal: Double) {
+    func update(row: Int, col: Int, with newVal: Double, deviceID: String = "manual") {
         grid[row][col].value = newVal
         grid[row][col].timestamp = .now
-        grid[row][col].deviceID = "manual"
+        grid[row][col].deviceID = deviceID
     }
 }
 
